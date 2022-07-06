@@ -86,4 +86,59 @@ describe("Booking", () => {
       expect(bookings).toHaveLength(0)
     })
   })
+
+  describe("Test createBooking", () => {
+    test("Can create a new booking with valid params", async () => {
+      const user = { username: "jlo" };
+      const listingId = testListingIds[0];
+      const listing = await Listing.fetchListingById(listingId);
+
+      // it should create a newBooking object with startDate, endDate, and 
+      // guests properties
+      const newBooking = {
+        startDate: "2021-03-05", 
+        endDate: "2021-03-07", 
+        paymentMethod: "card",
+        username: "jlo",
+        guests: "1"
+      };
+      //Then it should use the createBooking method on the Booking model to 
+      // create a new booking using the newBooking object, listing, and user.
+      const booking = await Booking.createBooking({ newBooking, listing, user });
+      let days = ((new Date(newBooking.endDate) - new Date(newBooking.startDate)) * 86400000 ) + 1;
+      let cost = listing.price * 1.1;
+      const price =  days*cost;
+      expect(booking).toEqual({
+        id: expect.any(Number),
+        startDate: new Date("03-05-2021"),
+        endDate: new Date("03-07-2021"),
+        guests: 1,
+        totalCost: expect.any(Number),
+        userId: expect.any(Number),
+        username: "jlo",
+        hostUsername: "lebron",
+        createdAt: expect.any(Date),
+      })
+    })
+
+    test("Throws error with invalid params", async () => {
+      const user = { username: "jlo" };
+      const listingId = testListingIds[0];
+      const listing = await Listing.fetchListingById(listingId);
+
+      const newBooking = {
+        startDate: "2021-03-05", 
+        endDate: "2021-03-07", 
+        paymentMethod: "card",
+        username: "jlo",
+        guests: "1"
+      };
+      try {
+        const booking = await Booking.createBooking(newBooking, listing, user);
+      } catch (err) {
+        expect(err instanceof BadRequestError).toBeTruthy();
+      }
+    })
+  })
+
 })
